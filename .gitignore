@@ -1,0 +1,15 @@
+# Raw data (Kaggle CSVs, see README section 7)
+data/
+
+# Credentials
+.env
+
+# OS / Python / Jupyter
+.DS_Store
+Thumbs.db
+__pycache__/
+.ipynb_checkpoints/
+
+# Documents not part of the project
+*.tex
+*.pdf
