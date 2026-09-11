@@ -21,11 +21,11 @@ phải nhờ giữ chân khách cũ.
 
 **Ba câu hỏi dự án trả lời:**
 
-1. **Khách hàng gồm những ai, nhóm nào đáng đầu tư?** (Phân khúc RFM + K-Means)
-2. **Khi nào một khách thực sự được coi là đã mất, và khi nào nên can thiệp?** (Phân tích sống sót,
-   dịch chuyển vòng đời)
-3. **Giao hàng chậm có phải nguyên nhân khách rời đi — và chiến dịch win-back đáng giá bao nhiêu?**
-   (Phân tích logistics, mô phỏng business case, thiết kế A/B test)
+1. **Khách hàng gồm những ai, nhóm nào đáng đầu tư?** (Phân khúc RFM + K-Means — `notebooks/01`)
+2. **Khi nào một khách thực sự được coi là đã mất, khi nào nên can thiệp, và đáng bao nhiêu tiền?**
+   (Phân tích sống sót, dịch chuyển vòng đời, mô phỏng business case, thiết kế A/B test — `notebooks/02`)
+3. **Vì sao khách không quay lại, và vận hành sửa được gì?** (Trải nghiệm lần mua đầu, logistics theo
+   vùng và theo seller, ngày hẹn giao, giỏ hàng và lần mua tiếp theo — `notebooks/03`)
 
 ---
 
@@ -42,6 +42,7 @@ Kaggle CSV (9 file)
 │     │    làm sạch + biến đổi bằng SQL       │
 │     ▼                                       │
 │  GOLD    Star schema — 4 dim, 3 fact        │
+│          + 2 bảng kết quả phân tích         │
 └──────┬────────────────────────▲─────────────┘
        │ SQLAlchemy             │ to_sql()
        ▼                        │
@@ -59,7 +60,9 @@ Kaggle CSV (9 file)
 
 **Tầng Gold (star schema):** `dim_customers`, `dim_products`, `dim_sellers`, `dim_date` ·
 `fact_orders` (grain: 1 đơn hàng), `fact_order_items` (grain: 1 dòng sản phẩm),
-`fact_rfm_segments` (grain: 1 khách × 1 kỳ snapshot).
+`fact_rfm_segments` (grain: 1 khách × 1 kỳ snapshot). Notebook 03 ghi thêm hai bảng kết quả:
+`fact_order_experience` (1 đơn — thứ tự lần mua, giao trễ, số ngày giao sớm, khác bang, số món) và
+`dim_seller_performance` (1 seller — số đơn, tỷ lệ trễ, điểm đánh giá, ngày giao).
 
 **Vì sao hai tầng, không phải ba:** Mô hình Medallion phổ biến có ba tầng — Bronze (dữ liệu thô),
 Silver (dữ liệu đã làm sạch), Gold (dữ liệu đã mô hình hóa cho phân tích). Dự án này chỉ dùng hai
@@ -140,11 +143,47 @@ thời gian vận chuyển chênh 2,5 lần (Southeast 7,5 ngày so với North 
 vấn đề — vận chuyển đường dài mới là. Đây cũng là khâu duy nhất đang cải thiện: giảm từ ~13 ngày đầu
 2018 xuống ~7 ngày vào tháng 8.
 
+Hai yếu tố cấu trúc giải thích độ trễ đến từ đâu. **64% đơn có seller và khách ở khác bang** (seller
+tập trung quanh São Paulo, khách thì không), và các đơn này mất 11,9 ngày vận chuyển so với 4,8 ngày
+của đơn cùng bang. Đơn trễ cũng tập trung: **5% seller gây ra 59% tổng số đơn trễ** — không phải vì tỷ
+lệ trễ của họ cao bất thường (không seller nào từ 100 đơn vượt 19%) mà vì họ chiếm sản lượng lớn. Một
+danh sách theo dõi khoảng 100 seller bao phủ một nửa số đơn trễ.
+
 ### 3.5 Khách hàng gần như không tự quay lại
 
 Theo dõi cùng một tệp khách qua hai mốc cách nhau sáu tháng: trong 55.524 khách hoạt động ở kỳ đầu,
 chỉ **1,2% phát sinh đơn hàng mới** trong sáu tháng tiếp theo. Dòng dịch chuyển vòng đời gần như một
 chiều (Engaged → Cooling → Dormant), tỷ lệ hồi phục ở mọi trạng thái chỉ khoảng 1%.
+
+### 3.6 Lần mua đầu tệ làm giảm một phần tư khả năng quay lại — lần mua đầu tốt không tạo ra nó
+
+Kiểm tra trực tiếp giả thuyết churn trên trải nghiệm lần mua đầu: khách có đơn đầu bị 1–2 sao quay
+lại **1,72%**, so với **2,25%** ở nhóm 4–5 sao; đơn đầu giao trễ cho **1,61%** so với **2,20%**. Ảnh
+hưởng có thật nhưng nhỏ. Ngay cả khách hài lòng và được giao đúng hẹn cũng chỉ quay lại 2,2%, nên sửa
+hết giao hàng chỉ nhích tỷ lệ mua lại được một phần nhỏ của một điểm phần trăm. Vận hành bảo vệ doanh
+thu và điểm đánh giá; nó không tạo ra lòng trung thành.
+
+Tuy vậy giao trễ chi phối điểm đánh giá: đơn trễ được chấm trung bình **2,27 sao** so với 4,29, và
+**62% đơn trễ bị 1–2 sao**. Nhìn từ phía ngược lại, chỉ **một phần ba đánh giá 1–2 sao là đơn trễ** —
+hai phần ba đánh giá xấu đến từ đơn giao đúng hẹn, tức là vấn đề sản phẩm hoặc xử lý đơn mà dữ liệu
+giao hàng không giải thích được.
+
+### 3.7 Ngày hẹn giao đang dè dặt hơn thực tế khoảng 12 ngày
+
+Đơn đến sớm hơn ngày hẹn với trung vị **12 ngày**; 79% đơn đến sớm ít nhất một tuần. Điểm đánh giá
+gần như phẳng theo mức giao sớm (4,20 khi sớm 1–7 ngày, 4,31 khi sớm 8–14, 4,32 khi sớm 15+): khách
+thưởng cho việc *không trễ*, không thưởng cho việc *sớm hơn nữa*. Olist có thể rút ngắn đáng kể ngày
+hẹn hiển thị lúc thanh toán mà không ảnh hưởng điểm đánh giá, miễn giữ được tỷ lệ trễ — một A/B test
+thứ hai mà khung thiết kế ở `notebooks/02` đã bao phủ.
+
+### 3.8 Không có gì để bán chéo trong đơn — nhưng có quy luật rõ ở lần mua sau
+
+Chỉ **3,3% đơn có hai sản phẩm khác nhau** (1,3% có hàng từ hai seller), nên phân tích giỏ hàng và
+gợi ý bán chéo tại trang thanh toán không có dữ liệu để làm. Tín hiệu nằm ở lần mua tiếp theo: trong
+2.015 khách mua lại, **38% mua lại cùng danh mục và 25% quay lại cùng seller**. Danh mục của lần mua
+đầu cũng dự báo việc quay lại: túi xách và phụ kiện thời trang 3,8%, trang trí nhà và chăn ga gối
+2,8–2,9%, so với điện tử 1,4% và nội thất văn phòng 1,5%. Khách quay lại vì nhu cầu lặp lại, không
+phải vì gắn bó với sàn.
 
 ---
 
@@ -159,11 +198,20 @@ một quy tắc quyết định đơn giản:
 Kênh chi phí thấp (email, push — dưới R$1/khách) có lãi ở mọi mức uplift thực tế, nên triển khai
 ngay. Ưu đãi trên R$5/khách cần uplift ≥3 điểm phần trăm — chưa được chứng minh, cần thử nghiệm A/B
 test trước khi mở rộng. Dashboard có mô hình What-If tương tác và ma trận độ nhạy bao phủ toàn bộ
-không gian quyết định chi phí × uplift.
+không gian quyết định chi phí × uplift. Nội dung chiến dịch nên cá nhân hóa theo lần mua đầu — cùng
+danh mục hoặc cùng seller (phát hiện 3.8) — thay vì giảm giá chung.
 
-**Ưu tiên 2 — Bảo vệ doanh thu nhóm At Risk bằng logistics.** Nhóm nắm 39,5% doanh thu đang nhận
-trải nghiệm giao hàng tệ nhất. Vì điểm nghẽn đã được chứng minh là khâu vận chuyển chứ không phải
-người bán, việc ưu tiên tuyến giao hàng cho khách giá trị cao sẽ trực tiếp bảo vệ doanh thu lõi.
+**Ưu tiên 2 — Bảo vệ doanh thu và điểm đánh giá của nhóm At Risk bằng logistics.** Nhóm nắm 39,5%
+doanh thu đang nhận trải nghiệm giao hàng tệ nhất. Vì điểm nghẽn đã được chứng minh là khâu vận
+chuyển chứ không phải người bán, việc ưu tiên tuyến giao hàng cho khách giá trị cao sẽ trực tiếp bảo
+vệ doanh thu lõi. Về mặt vận hành, việc này gồm hai danh sách: khoảng 100 seller sản lượng lớn đứng
+sau một nửa số đơn trễ (hỗ trợ, không phạt — tỷ lệ trễ của họ không cao bất thường) và vùng
+Northeast, nơi có số đơn gấp năm lần North với tỷ lệ trễ tương đương. Đây là đòn bẩy bảo vệ doanh
+thu, không phải đòn bẩy giữ chân (phát hiện 3.6).
+
+**Ưu tiên 2b — Rút ngắn ngày hẹn giao.** Với khoảng dư trung vị 12 ngày và không có lợi ích điểm đánh
+giá từ việc giao sớm, ngày hẹn hiển thị lúc thanh toán có thể siết lại theo từng vùng, bắt đầu từ
+Southeast nơi độ lệch giao hàng thấp nhất.
 
 **Ưu tiên 3 — Chuyển đổi nhóm Potential Loyalist.** Vì không tồn tại nhóm Champions, nhóm này (31%
 khách hàng, 30,3% doanh thu, hoạt động gần đây nhất) là con đường thực tế duy nhất để xây dựng tầng
@@ -252,7 +300,9 @@ Các quyết định ảnh hưởng trực tiếp đến kết quả:
    `07_add_delivery_stages.sql`.
 6. Kiểm tra bằng `sql/06_data_quality_checks.sql` — mọi kiểm tra phải trả về PASS.
 7. Chạy `notebooks/02_advanced_analysis.ipynb` cho phân tích sống sót, dịch chuyển và business case.
-8. Mở `powerbi/Olist_RFM_Dashboard.pbix`, cập nhật thông tin kết nối và refresh.
+8. Chạy `notebooks/03_experience_operations_repeat.ipynb` — ghi `gold.fact_order_experience` và
+   `gold.dim_seller_performance`.
+9. Mở `powerbi/Olist_RFM_Dashboard.pbix`, cập nhật thông tin kết nối và refresh.
    Dùng **View → Reading view** để có đầy đủ tính năng tương tác trong Desktop.
 
 ---
@@ -281,8 +331,8 @@ Các quyết định ảnh hưởng trực tiếp đến kết quả:
 
 - Mô hình dự đoán churn (logistic regression trên đặc điểm đơn hàng đầu tiên: điểm review, độ trễ
   giao hàng, danh mục, khu vực).
-- Phân rã sâu hơn thời gian giao hàng bằng các mốc thời gian phía người bán để tách riêng độ trễ ở
-  khâu bàn giao cho đơn vị vận chuyển.
+- Phân tích văn bản bình luận đánh giá: hai phần ba đánh giá 1–2 sao không phải đơn trễ, và 77% đánh
+  giá 1 sao có bình luận, đủ để tách nguyên nhân sản phẩm, xử lý đơn và vận chuyển.
 - Chuyển các phép biến đổi SQL sang dbt để có kiểm thử và truy vết dòng dữ liệu.
 
 ---
@@ -298,12 +348,14 @@ Các quyết định ảnh hưởng trực tiếp đến kết quả:
 │   ├── 04–05, 07                      Nhãn phân khúc, vùng miền, phân rã khâu giao hàng
 │   └── 06_data_quality_checks.sql     Kiểm tra đối chiếu (số dòng, khóa mồ côi, tính toàn vẹn PK)
 ├── notebooks/
-│   ├── 01_eda_rfm_kmeans.ipynb        RFM, K-Means, đặc trưng phân khúc
-│   └── 02_advanced_analysis.ipynb     Sống sót, dịch chuyển, business case, A/B design
+│   ├── 01_eda_rfm_kmeans.ipynb              RFM, K-Means, đặc trưng phân khúc
+│   ├── 02_advanced_analysis.ipynb           Sống sót, dịch chuyển, business case, A/B design
+│   └── 03_experience_operations_repeat.ipynb Trải nghiệm lần mua đầu, logistics theo vùng/seller,
+│                                            ngày hẹn giao, giỏ hàng và lần mua sau
 ├── powerbi/
 │   ├── Olist_RFM_Dashboard.pbix
 │   └── screenshots/                   Ảnh chụp các trang và GIF minh họa tương tác
-├── business_analysis.md    Câu hỏi kinh doanh, số liệu nền tảng, định nghĩa KPI
+├── business_analysis.md    Bài toán và giả thuyết ban đầu, số liệu nền tảng, định nghĩa KPI
 ├── README.md               Bản tiếng Anh
 └── README_vi.md
 ```

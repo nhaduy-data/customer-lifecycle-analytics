@@ -21,10 +21,12 @@ retaining existing ones.
 
 **Three questions this project answers:**
 
-1. **Who are the customers, and which segment deserves investment?** (RFM + K-Means segmentation)
-2. **When is a customer actually lost, and when should we intervene?** (Survival analysis, lifecycle migration)
-3. **Is delivery performance driving churn — and what would a win-back campaign be worth?**
-   (Logistics analysis, business case simulation, A/B test design)
+1. **Who are the customers, and which segment deserves investment?** (RFM + K-Means segmentation —
+   `notebooks/01`)
+2. **When is a customer actually lost, when should we intervene, and what is it worth?** (Survival
+   analysis, lifecycle migration, business case simulation, A/B test design — `notebooks/02`)
+3. **Why don't customers come back, and what can operations fix?** (First-order experience, logistics
+   by region and seller, delivery promise, basket and next-purchase behaviour — `notebooks/03`)
 
 ---
 
@@ -41,6 +43,7 @@ Kaggle CSV (9 files)
 │     │    cleaning + transformation in SQL   │
 │     ▼                                       │
 │  GOLD    Star schema — 4 dims, 3 facts      │
+│          + 2 analysis outputs               │
 └──────┬────────────────────────▲─────────────┘
        │ SQLAlchemy             │ to_sql()
        ▼                        │
@@ -58,7 +61,9 @@ Kaggle CSV (9 files)
 
 **Gold layer (star schema):** `dim_customers`, `dim_products`, `dim_sellers`, `dim_date` ·
 `fact_orders` (grain: one order), `fact_order_items` (grain: one line item),
-`fact_rfm_segments` (grain: one customer × one snapshot date).
+`fact_rfm_segments` (grain: one customer × one snapshot date). Notebook 03 adds two analysis outputs:
+`fact_order_experience` (one order — purchase sequence, lateness, days early, cross-state, basket size)
+and `dim_seller_performance` (one seller — order count, late rate, review, delivery days).
 
 **Why two layers, not three:** The Medallion pattern typically has three layers — Bronze (raw),
 Silver (cleaned), Gold (modelled for analysis). This project uses two: the cleaning steps that would
@@ -138,11 +143,47 @@ varies 2.5× (Southeast 7.5 days vs North 19.3). Sellers are not the problem —
 logistics is. Transit is also the only stage improving: down from ~13 days in early 2018 to ~7 days
 by August.
 
+Two structural facts explain where the delay comes from. **64% of orders cross state lines** (sellers
+cluster around São Paulo, customers do not), and those orders spend 11.9 days in transit versus 4.8
+for in-state orders. Late orders are also concentrated: **5% of sellers account for 59% of all late
+orders** — not because their late rate is extreme (no seller with 100+ orders exceeds 19%) but because
+they carry the volume. A watch-list of ~100 sellers covers half of all late deliveries.
+
 ### 3.5 Customers almost never reactivate on their own
 
 Tracking the same cohort across two snapshots six months apart: of 55,524 customers active at the
 first snapshot, only **1.2% placed a new order** in the following six months. Lifecycle movement is
 effectively one-directional (Engaged → Cooling → Dormant) with ~1% recovery at every stage.
+
+### 3.6 A bad first order cuts the chance of a return by a quarter — a good one does not create it
+
+Testing the churn hypothesis directly on first-purchase experience: customers whose first order was
+rated 1–2 stars return at **1.72%**, versus **2.25%** for 4–5 stars; a late first delivery gives
+**1.61%** versus **2.20%**. The effect is real but small. Even satisfied, on-time customers return at
+2.2%, so fixing every delivery would move the repeat rate by a fraction of a point. Operations
+protects revenue and ratings; it does not build loyalty.
+
+Late delivery does, however, dominate ratings: late orders average **2.27 stars** versus 4.29, and
+**62% of late orders receive 1–2 stars**. Seen from the other side, only **a third of 1–2 star
+reviews are late orders** — two thirds of bad reviews come from on-time deliveries and point to
+product or fulfilment problems that the delivery data cannot explain.
+
+### 3.7 The delivery promise is ~12 days too conservative
+
+Orders arrive a median **12 days before the promised date**; 79% arrive at least a week early.
+Ratings are flat across early-delivery bands (4.20 for 1–7 days early, 4.31 for 8–14, 4.32 for 15+):
+customers reward *not late*, not *extra early*. Olist could shorten the promise shown at checkout
+substantially without touching ratings, provided the late rate is held — a second A/B test that the
+framework in `notebooks/02` already covers.
+
+### 3.8 Nothing to cross-sell inside the order — but a clear pattern in the next one
+
+Only **3.3% of orders contain two distinct products** (1.3% involve two sellers), so basket analysis
+and checkout cross-sell have no data to work with. The next purchase is where the signal is: among
+the 2,015 repeat customers, **38% buy the same category again and 25% return to the same seller**.
+The first-purchase category also predicts return: fashion bags & accessories 3.8%, furniture décor
+and bed/bath 2.8–2.9%, versus electronics 1.4% and office furniture 1.5%. Customers come back for
+repeatable needs, not for the marketplace.
 
 ---
 
@@ -157,11 +198,21 @@ self-return rate 1.08%, AOV R$159.86) yields a simple decision rule:
 Low-cost channels (email, push — under R$1 per customer) are profitable at any realistic uplift and
 should be deployed immediately. Incentives above R$5 per customer require ≥3pp uplift, which is
 unproven — pilot with an A/B test before scaling. The dashboard includes an interactive What-If
-model and a sensitivity matrix covering the full cost × uplift decision space.
+model and a sensitivity matrix covering the full cost × uplift decision space. Campaign content
+should be personalised on the first purchase — same category or same seller (finding 3.8) — rather
+than a generic discount.
 
-**Priority 2 — Protect At Risk revenue through logistics.** The segment carrying 39.5% of revenue
-receives the worst delivery experience. Since carrier transit rather than seller dispatch is the
-proven bottleneck, priority shipping routes for high-value customers directly protect core revenue.
+**Priority 2 — Protect At Risk revenue and ratings through logistics.** The segment carrying 39.5%
+of revenue receives the worst delivery experience. Since carrier transit rather than seller dispatch
+is the proven bottleneck, priority shipping routes for high-value customers directly protect core
+revenue. Operationally this means two lists: the ~100 high-volume sellers behind half of all late
+orders (support, not penalties — their late rates are not extreme) and the Northeast, which has five
+times North's volume at a similar late rate. This is a revenue-protection lever, not a retention
+lever (finding 3.6).
+
+**Priority 2b — Shorten the delivery promise.** With a median 12-day buffer and no rating benefit
+from arriving early, the promised date shown at checkout can be tightened region by region, starting
+with the Southeast where delivery variance is lowest.
 
 **Priority 3 — Convert Potential Loyalists.** With no Champions segment in existence, this group
 (31% of customers, 30.3% of revenue, most recent activity) is the only realistic path to building a
@@ -248,7 +299,9 @@ Decisions that materially affect the results:
 5. Run the remaining SQL: `04_add_segment_to_dim.sql`, `05_add_region.sql`, `07_add_delivery_stages.sql`.
 6. Validate with `sql/06_data_quality_checks.sql` — every check should return PASS.
 7. Run `notebooks/02_advanced_analysis.ipynb` for survival, migration and business case analysis.
-8. Open `powerbi/Olist_RFM_Dashboard.pbix`, update the data source credentials, and refresh.
+8. Run `notebooks/03_experience_operations_repeat.ipynb` — writes `gold.fact_order_experience` and
+   `gold.dim_seller_performance`.
+9. Open `powerbi/Olist_RFM_Dashboard.pbix`, update the data source credentials, and refresh.
    Use **View → Reading view** for full interactivity in Desktop.
 
 ---
@@ -279,7 +332,8 @@ Decisions that materially affect the results:
 
 - Churn prediction model (logistic regression on first-order attributes: review score, delivery
   delay, category, region).
-- Further delivery decomposition using seller-side timestamps to isolate carrier handover delays.
+- Text analysis of review comments: two thirds of 1–2 star reviews are not late deliveries, and 77%
+  of 1-star reviews carry a written comment that could separate product, fulfilment and carrier issues.
 - Migrate the SQL transformations to dbt for testing and lineage.
 
 ---
@@ -295,12 +349,14 @@ Decisions that materially affect the results:
 │   ├── 04–05, 07                      Segment labels, regions, delivery stages
 │   └── 06_data_quality_checks.sql     Reconciliation tests (row counts, orphan keys, PK integrity)
 ├── notebooks/
-│   ├── 01_eda_rfm_kmeans.ipynb        RFM, K-Means, segment profiling
-│   └── 02_advanced_analysis.ipynb     Survival, migration, business case, A/B design
+│   ├── 01_eda_rfm_kmeans.ipynb              RFM, K-Means, segment profiling
+│   ├── 02_advanced_analysis.ipynb           Survival, migration, business case, A/B design
+│   └── 03_experience_operations_repeat.ipynb First-order experience, logistics by region/seller,
+│                                            delivery promise, basket and next purchase
 ├── powerbi/
 │   ├── Olist_RFM_Dashboard.pbix
 │   └── screenshots/                   Page captures and interaction demos
-├── business_analysis.md    Business questions, verified baseline metrics, KPI definitions
+├── business_analysis.md    Business problems and hypotheses, verified baseline metrics, KPI definitions
 ├── README.md
 └── README_vi.md            Vietnamese version
 ```

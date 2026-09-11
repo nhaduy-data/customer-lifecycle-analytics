@@ -27,7 +27,7 @@ Olist là một nền tảng marketplace kết nối các cửa hàng nhỏ (sel
 | CLV lịch sử | **R$ 165/khách** (15.42M / 93,357) | Gần bằng AOV vì gần như mọi khách chỉ mua một lần |
 | Thanh toán | Credit card **76,795 giao dịch (~81% giá trị)**, boleto 19,784, voucher 5,775, debit 1,529. **66.85%** giao dịch credit card trả góp >1 kỳ | Xác nhận đặc thù trả góp của thị trường Brazil |
 | Đơn nhiều dòng payment | **2,961 đơn** có ≥2 dòng trong bảng payments | Cần gộp về mức đơn hàng trước khi JOIN để tránh nhân bản doanh thu |
-| Giao hàng | Trung bình **12.5 ngày** (hiệu hai ngày lịch); **8.11% đơn giao trễ** hơn ngày hẹn | Đầu vào cho phân tích vận hành |
+| Giao hàng | Trung bình **12.5 ngày** (hiệu hai ngày lịch); **6.77% đơn giao sau ngày hẹn** (8.11% nếu so theo timestamp, khi đó đơn giao đúng ngày hẹn cũng bị tính là trễ vì mốc hẹn là 0 giờ) | Đầu vào cho phân tích vận hành |
 | Review | Trung bình **4.09/5**; **14.69% đơn bị 1–2 sao** | Đầu vào cho phân tích trải nghiệm khách hàng |
 | Pareto thực tế | Top 20% khách đóng góp **53.5%** doanh thu, không phải 80/20 | Mức tập trung thấp hơn thông lệ vì gần như mọi khách chỉ mua một lần |
 | Khách chi đậm nhất | **R$ 13,664** | Khách mua sỉ, không phải lỗi dữ liệu — giữ lại và xử lý bằng log transform |
@@ -65,50 +65,45 @@ Công thức được thống nhất tại đây để Python, SQL và DAX cùng
 | **Churn window** | — | Fact_RFM (recency) | Xác định bằng survival analysis, KHÔNG dùng quy ước 90 ngày (tại 90 ngày mới 55% khách quay lại → 45% bị dán nhãn mất oan). Hai ngưỡng: **cần can thiệp ~74–175 ngày** (median→P75), **đã rời bỏ ~288 ngày** (P90) |
 | **Retention Rate (tháng)** | Số khách mua ở tháng T **và** tháng T−1 / Số khách mua ở tháng T−1 | Fact_Orders + Dim_Date | Cần Dim_Date để tính bằng time intelligence trong DAX |
 | **Churn (proxy)** | % khách vượt ngưỡng "đã rời bỏ" **~288 ngày** kể từ lần mua gần nhất | Fact_RFM (recency) | Ngưỡng xác định bằng survival analysis (CDF inter-purchase time trên 2,015 khách mua lại thật) — xem notebook 02 phần 1. Thay cho quy ước 90 ngày ban đầu vốn quá ngắn |
-| **Late Delivery Rate** | Số đơn có ngày giao thực tế > ngày hẹn / Số đơn delivered có ngày giao | Fact_Orders | Baseline: 8.11% |
+| **Late Delivery Rate** | Số đơn có ngày giao thực tế > ngày hẹn (so theo ngày lịch, cột `order_delay_day > 0`) / Số đơn delivered có ngày giao | Fact_Orders | Baseline: **6.77%**. Không so theo timestamp: cách đó cho 8.11% vì đơn giao đúng ngày hẹn cũng bị tính là trễ |
 
 ---
 
-## 5. 3 Bài Toán Doanh Nghiệp Cần Giải Quyết
+## 5. Ba Bài Toán Doanh Nghiệp Cần Giải Quyết
 
-### Bài toán 1: Tối ưu hóa tỷ lệ giữ chân khách hàng (Retention Rate) & Giảm Churn
-Doanh nghiệp muốn biết: *Ai là người đang rời bỏ chúng ta? Làm sao để kéo họ quay lại trước khi quá muộn?*
-* **Vấn đề kỹ thuật:** Sử dụng RFM (Recency - Frequency - Monetary) kết hợp K-Means Clustering để phân cụm tập khách hàng.
-* **Góc nhìn doanh nghiệp:**
-  * Xác định nhóm **At-risk** (Đã lâu không mua nhưng trước đó mua nhiều) và nhóm **Lost** (Đã mất hoàn toàn).
-  * Tìm mối tương quan giữa tỷ lệ rời bỏ với các yếu tố vận hành như: Thời gian giao hàng thực tế vs. Dự kiến, phí ship cao, hay điểm đánh giá (review_score) kém.
-  * **Hành động đề xuất:** Chiến dịch win-back tự động, kích hoạt tại ngưỡng can thiệp ~175 ngày không phát sinh giao dịch (ngưỡng xác định bằng survival analysis, xem mục 4).
-* **Câu hỏi phân tích:**
-  1. Khách mua lại khác khách một lần thế nào về điểm review trung bình và tỷ lệ bị giao trễ?
-  2. Thời gian giữa lần mua thứ nhất và thứ hai phân bố ra sao? Đây là căn cứ dữ liệu để xác định ngưỡng churn và thời điểm can thiệp.
-  3. Tỷ lệ mua lại có khác biệt giữa các vùng địa lý không?
-  4. Khách có đơn hàng đầu tiên bị đánh giá 1–2 sao thì tỷ lệ quay lại thấp hơn bao nhiêu so với khách có đơn đầu 4–5 sao?
+Ba bài toán nối tiếp nhau theo thứ tự: mô tả tệp khách hàng, xác định thời điểm can thiệp, tìm nguyên nhân. Mỗi bài toán được trả lời trong một notebook. Với mỗi bài toán, tài liệu ghi lại **giả thuyết ban đầu** trước khi phân tích, để phần phân tích có thể xác nhận hoặc bác bỏ nó; kết quả cuối cùng được tổng hợp trong README, mục 3.
 
-### Bài toán 2: Tăng Giá Trị Đơn Hàng Trung Bình (AOV) & Giá Trị Trọn Đời (CLV)
-Doanh nghiệp muốn biết: *Làm sao để khách hàng mua nhiều hơn trong một đơn và quay lại mua nhiều lần hơn?*
-* **Vấn đề kỹ thuật:** Phân tích giỏ hàng, xu hướng thanh toán trả góp, các danh mục sản phẩm phổ biến của nhóm VIP.
-* **Góc nhìn doanh nghiệp:**
-  * Nhóm **Champions/VIP** mua gì? Họ dùng phương thức thanh toán nào? (Ví dụ: Nếu họ thích trả góp nhiều kỳ, cần làm việc với đối tác tài chính để tối ưu hóa phí giao dịch).
-  * Có thể áp dụng Cross-selling (Bán chéo) hay Up-selling (Bán thêm) cho nhóm khách hàng trung thành thông qua các combo sản phẩm nào?
-  * **Hành động đề xuất:** Thiết kế chương trình khách hàng thân thiết (Loyalty Program) dành riêng cho nhóm Champions. Gợi ý sản phẩm liên quan ngay tại trang thanh toán dựa trên hành vi mua hàng của nhóm này.
-* **Câu hỏi phân tích cụ thể:**
-  1. Danh mục sản phẩm nào có AOV cao nhất, và nhóm khách chi tiêu cao nhất tập trung mua danh mục gì?
-  2. Đơn trả góp nhiều kỳ có giá trị cao hơn đơn thanh toán một lần bao nhiêu?
-  3. Bao nhiêu phần trăm đơn hàng có từ hai sản phẩm trở lên? (khả năng bán chéo hiện tại)
-  4. Phí vận chuyển chiếm bao nhiêu phần trăm giá trị đơn theo từng vùng?
+### Bài toán 1: Khách hàng gồm những ai, nhóm nào đáng đầu tư? — `notebooks/01_eda_rfm_kmeans.ipynb`
+Doanh nghiệp muốn biết: *Tệp khách hàng có cấu trúc thế nào, và ngân sách giữ chân nên dồn vào đâu?*
+* **Giả thuyết ban đầu:** tệp khách có thể chia thành các nhóm quen thuộc như bản đồ ở mục 6 (Champions, Loyal, At Risk, Lost...), và tồn tại một nhóm khách trung thành đủ lớn để xây chương trình khách hàng thân thiết.
+* **Câu hỏi kiểm chứng:**
+  1. Ba chỉ số Recency, Frequency, Monetary phân bố ra sao; chỉ số nào thực sự phân biệt được khách hàng?
+  2. Bao nhiêu cụm là hợp lý, xét theo thống kê (elbow, silhouette) và theo khả năng hành động?
+  3. Mỗi phân khúc chiếm bao nhiêu khách và bao nhiêu doanh thu; nhóm nào cần ưu tiên?
+  4. Chấm điểm RFM truyền thống có cho kết quả khác K-Means không, và khác ở đâu?
+* **Hành động phụ thuộc kết quả:** thứ tự ưu tiên ngân sách theo phân khúc; có hay không chương trình khách hàng thân thiết.
 
-### Bài toán 3: Quản lý Chất lượng Vận hành & Trải nghiệm Khách hàng (Logistics & Customer Experience)
-Doanh nghiệp muốn biết: *Sự chậm trễ trong giao hàng và đánh giá tiêu cực ảnh hưởng thế nào đến lòng trung thành của khách hàng?*
-* **Vấn đề kỹ thuật:** Phân tích mối liên hệ giữa RFM Segment và Review Score, Delivery Delay (Thời gian giao hàng thực tế - Thời gian ước tính).
-* **Góc nhìn doanh nghiệp:**
-  * Nhóm khách hàng rời đi (Lost/Hibernating) có phải do họ từng có trải nghiệm giao hàng tệ hại hoặc đánh giá 1 sao hay không?
-  * Khu vực địa lý nào (state, city) có tỷ lệ khách hàng rời bỏ cao nhất do vấn đề logistics?
-  * **Hành động đề xuất:** Cảnh báo bộ phận vận hành về các seller thường xuyên giao hàng trễ hoặc có review thấp ở các khu vực trọng điểm. Điều chỉnh thời gian giao hàng ước tính thực tế hơn để tránh làm khách hàng thất vọng.
-* **Câu hỏi phân tích cụ thể:**
-  1. Đơn giao trễ có điểm review trung bình thấp hơn đơn đúng hẹn bao nhiêu?
-  2. Các đơn giao trễ tập trung ở vùng địa lý nào?
-  3. Trong số đơn bị đánh giá 1–2 sao, bao nhiêu phần trăm gắn với giao hàng trễ? (tách nguyên nhân vận hành khỏi nguyên nhân sản phẩm)
-  4. Thời gian giao hàng trung bình của khách mua một lần so với khách mua lại có khác biệt không? Nếu có, đây là bằng chứng cho thấy việc khách rời đi là vấn đề vận hành chứ không chỉ marketing.
+### Bài toán 2: Khi nào một khách được coi là đã mất, can thiệp lúc nào và đáng bao nhiêu tiền? — `notebooks/02_advanced_analysis.ipynb`
+Doanh nghiệp muốn biết: *Ngưỡng nào để kích hoạt chiến dịch win-back, và chi tối đa bao nhiêu cho mỗi khách thì còn có lãi?*
+* **Giả thuyết ban đầu:** quy ước 90 ngày không mua là đã rời bỏ đủ dùng cho Olist; chiến dịch win-back có lãi nếu đạt uplift vài phần trăm.
+* **Câu hỏi kiểm chứng:**
+  1. Thời gian giữa lần mua thứ nhất và thứ hai phân bố ra sao; ngưỡng nào là "cần can thiệp" và ngưỡng nào là "đã mất"?
+  2. Trong sáu tháng, khách dịch chuyển giữa các trạng thái vòng đời thế nào, và bao nhiêu giá trị đi theo?
+  3. Tỷ lệ tự quay lại khi không can thiệp là bao nhiêu? Đây là con số nền để đo hiệu quả mọi chiến dịch.
+  4. Với chi phí và uplift nào thì win-back hòa vốn, và kiểm chứng uplift bằng thí nghiệm nào?
+* **Hành động phụ thuộc kết quả:** ngưỡng kích hoạt chiến dịch; quy tắc chi phí tối đa mỗi khách; thiết kế A/B test.
+
+### Bài toán 3: Vì sao khách không quay lại, và vận hành sửa được gì? — `notebooks/03_experience_operations_repeat.ipynb`
+Doanh nghiệp muốn biết: *Trải nghiệm mua hàng có phải lý do khách không quay lại không, và nếu sửa vận hành thì được gì?*
+* **Giả thuyết ban đầu:** khách rời đi vì trải nghiệm giao hàng xấu (giao trễ, phí vận chuyển cao, đánh giá thấp); giá trị khách có thể tăng bằng bán chéo trong giỏ hàng và khuyến khích trả góp.
+* **Câu hỏi kiểm chứng:**
+  1. Khách có lần mua đầu bị đánh giá 1–2 sao hoặc giao trễ quay lại ít hơn bao nhiêu so với khách hài lòng?
+  2. Tỷ lệ mua lại, tỷ lệ giao trễ và phí vận chuyển khác nhau thế nào giữa các vùng, và có cùng thứ tự không?
+  3. Giao trễ làm điểm đánh giá giảm bao nhiêu, và bao nhiêu phần đánh giá xấu là do giao hàng?
+  4. Ngày giao dự kiến đang được đặt gần hay xa so với thực tế, và giao sớm hơn có làm khách hài lòng hơn không?
+  5. Giao trễ tập trung ở seller nào; bao nhiêu phần chậm trễ đến từ việc seller và khách ở khác bang?
+  6. Giỏ hàng có bao nhiêu sản phẩm; khách quay lại có mua cùng danh mục hoặc cùng seller không; lần mua đầu ở danh mục nào thì hay quay lại?
+* **Hành động phụ thuộc kết quả:** có coi logistics là đòn bẩy giữ chân hay chỉ là đòn bẩy bảo vệ điểm đánh giá; danh sách seller cần hỗ trợ; rút ngắn hay giữ ngày hẹn giao; nội dung chiến dịch win-back (bán chéo hay gợi ý cùng danh mục).
 
 ---
 
