@@ -1,4 +1,4 @@
-# 📈 Phân Tích Bài Toán Doanh Nghiệp (Olist E-Commerce Business Case)
+# Phân Tích Bài Toán Doanh Nghiệp (Olist E-Commerce Business Case)
 
 Tài liệu này xác định các bài toán kinh doanh cốt lõi của sàn thương mại điện tử **Olist (Brazil)** dựa trên dữ liệu thực tế, cùng các số liệu nền tảng và định nghĩa KPI làm cơ sở cho toàn bộ phân tích. Mục tiêu là chuyển từ xử lý kỹ thuật thuần túy (SQL/ML) sang giải quyết vấn đề doanh nghiệp và trích xuất insight có thể hành động.
 
@@ -71,7 +71,7 @@ Công thức được thống nhất tại đây để Python, SQL và DAX cùng
 
 ## 5. 3 Bài Toán Doanh Nghiệp Cần Giải Quyết
 
-### 📌 Bài toán 1: Tối ưu hóa tỷ lệ giữ chân khách hàng (Retention Rate) & Giảm Churn
+### Bài toán 1: Tối ưu hóa tỷ lệ giữ chân khách hàng (Retention Rate) & Giảm Churn
 Doanh nghiệp muốn biết: *Ai là người đang rời bỏ chúng ta? Làm sao để kéo họ quay lại trước khi quá muộn?*
 * **Vấn đề kỹ thuật:** Sử dụng RFM (Recency - Frequency - Monetary) kết hợp K-Means Clustering để phân cụm tập khách hàng.
 * **Góc nhìn doanh nghiệp:**
@@ -84,7 +84,7 @@ Doanh nghiệp muốn biết: *Ai là người đang rời bỏ chúng ta? Làm 
   3. Tỷ lệ mua lại có khác biệt giữa các vùng địa lý không?
   4. Khách có đơn hàng đầu tiên bị đánh giá 1–2 sao thì tỷ lệ quay lại thấp hơn bao nhiêu so với khách có đơn đầu 4–5 sao?
 
-### 📌 Bài toán 2: Tăng Giá Trị Đơn Hàng Trung Bình (AOV) & Giá Trị Trọn Đời (CLV)
+### Bài toán 2: Tăng Giá Trị Đơn Hàng Trung Bình (AOV) & Giá Trị Trọn Đời (CLV)
 Doanh nghiệp muốn biết: *Làm sao để khách hàng mua nhiều hơn trong một đơn và quay lại mua nhiều lần hơn?*
 * **Vấn đề kỹ thuật:** Phân tích giỏ hàng, xu hướng thanh toán trả góp, các danh mục sản phẩm phổ biến của nhóm VIP.
 * **Góc nhìn doanh nghiệp:**
@@ -97,7 +97,7 @@ Doanh nghiệp muốn biết: *Làm sao để khách hàng mua nhiều hơn tron
   3. Bao nhiêu phần trăm đơn hàng có từ hai sản phẩm trở lên? (khả năng bán chéo hiện tại)
   4. Phí vận chuyển chiếm bao nhiêu phần trăm giá trị đơn theo từng vùng?
 
-### 📌 Bài toán 3: Quản lý Chất lượng Vận hành & Trải nghiệm Khách hàng (Logistics & Customer Experience)
+### Bài toán 3: Quản lý Chất lượng Vận hành & Trải nghiệm Khách hàng (Logistics & Customer Experience)
 Doanh nghiệp muốn biết: *Sự chậm trễ trong giao hàng và đánh giá tiêu cực ảnh hưởng thế nào đến lòng trung thành của khách hàng?*
 * **Vấn đề kỹ thuật:** Phân tích mối liên hệ giữa RFM Segment và Review Score, Delivery Delay (Thời gian giao hàng thực tế - Thời gian ước tính).
 * **Góc nhìn doanh nghiệp:**
