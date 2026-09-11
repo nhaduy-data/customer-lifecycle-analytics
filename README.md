@@ -146,8 +146,9 @@ by August.
 Two structural facts explain where the delay comes from. **64% of orders cross state lines** (sellers
 cluster around São Paulo, customers do not), and those orders spend 11.9 days in transit versus 4.8
 for in-state orders. Late orders are also concentrated: **5% of sellers account for 59% of all late
-orders** — not because their late rate is extreme (no seller with 100+ orders exceeds 19%) but because
-they carry the volume. A watch-list of ~100 sellers covers half of all late deliveries.
+orders** — but the same sellers ship 50% of all orders, so the concentration follows volume, not
+quality: only 9 sellers have a late rate above twice the average, and they cause under 5% of late
+orders. A watch-list of ~100 high-volume sellers covers half of all late deliveries.
 
 ### 3.5 Customers almost never reactivate on their own
 

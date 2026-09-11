@@ -146,8 +146,9 @@ vấn đề — vận chuyển đường dài mới là. Đây cũng là khâu d
 Hai yếu tố cấu trúc giải thích độ trễ đến từ đâu. **64% đơn có seller và khách ở khác bang** (seller
 tập trung quanh São Paulo, khách thì không), và các đơn này mất 11,9 ngày vận chuyển so với 4,8 ngày
 của đơn cùng bang. Đơn trễ cũng tập trung: **5% seller gây ra 59% tổng số đơn trễ** — không phải vì tỷ
-lệ trễ của họ cao bất thường (không seller nào từ 100 đơn vượt 19%) mà vì họ chiếm sản lượng lớn. Một
-danh sách theo dõi khoảng 100 seller bao phủ một nửa số đơn trễ.
+lệ trễ của họ cao bất thường mà vì chính nhóm đó bán ra 50% tổng đơn: mức tập trung đi theo sản
+lượng, không theo chất lượng. Chỉ 9 seller có tỷ lệ trễ gấp đôi mức chung, và họ gây ra chưa tới 5%
+số đơn trễ. Một danh sách theo dõi khoảng 100 seller bán nhiều đơn nhất bao phủ một nửa số đơn trễ.
 
 ### 3.5 Khách hàng gần như không tự quay lại
 
@@ -168,11 +169,11 @@ Tuy vậy giao trễ chi phối điểm đánh giá: đơn trễ được chấm
 hai phần ba đánh giá xấu đến từ đơn giao đúng hẹn, tức là vấn đề sản phẩm hoặc xử lý đơn mà dữ liệu
 giao hàng không giải thích được.
 
-### 3.7 Ngày hẹn giao đang dè dặt hơn thực tế khoảng 12 ngày
+### 3.7 Ngày hẹn giao đang xa hơn thực tế khoảng 12 ngày
 
 Đơn đến sớm hơn ngày hẹn với trung vị **12 ngày**; 79% đơn đến sớm ít nhất một tuần. Điểm đánh giá
 gần như phẳng theo mức giao sớm (4,20 khi sớm 1–7 ngày, 4,31 khi sớm 8–14, 4,32 khi sớm 15+): khách
-thưởng cho việc *không trễ*, không thưởng cho việc *sớm hơn nữa*. Olist có thể rút ngắn đáng kể ngày
+chấm điểm theo việc *không trễ*, không theo việc *sớm hơn nữa*. Olist có thể rút ngắn đáng kể ngày
 hẹn hiển thị lúc thanh toán mà không ảnh hưởng điểm đánh giá, miễn giữ được tỷ lệ trễ — một A/B test
 thứ hai mà khung thiết kế ở `notebooks/02` đã bao phủ.
 
@@ -204,10 +205,10 @@ danh mục hoặc cùng seller (phát hiện 3.8) — thay vì giảm giá chung
 **Ưu tiên 2 — Bảo vệ doanh thu và điểm đánh giá của nhóm At Risk bằng logistics.** Nhóm nắm 39,5%
 doanh thu đang nhận trải nghiệm giao hàng tệ nhất. Vì điểm nghẽn đã được chứng minh là khâu vận
 chuyển chứ không phải người bán, việc ưu tiên tuyến giao hàng cho khách giá trị cao sẽ trực tiếp bảo
-vệ doanh thu lõi. Về mặt vận hành, việc này gồm hai danh sách: khoảng 100 seller sản lượng lớn đứng
-sau một nửa số đơn trễ (hỗ trợ, không phạt — tỷ lệ trễ của họ không cao bất thường) và vùng
-Northeast, nơi có số đơn gấp năm lần North với tỷ lệ trễ tương đương. Đây là đòn bẩy bảo vệ doanh
-thu, không phải đòn bẩy giữ chân (phát hiện 3.6).
+vệ doanh thu lõi. Về mặt vận hành, việc này gồm hai danh sách: khoảng 100 seller bán nhiều đơn nhất đứng
+sau một nửa số đơn trễ (hỗ trợ, không xử phạt — tỷ lệ trễ của họ không cao bất thường) và vùng
+Northeast, nơi có số đơn gấp năm lần North với tỷ lệ trễ tương đương. Đây là biện pháp bảo vệ doanh
+thu, không phải biện pháp giữ chân (phát hiện 3.6).
 
 **Ưu tiên 2b — Rút ngắn ngày hẹn giao.** Với khoảng dư trung vị 12 ngày và không có lợi ích điểm đánh
 giá từ việc giao sớm, ngày hẹn hiển thị lúc thanh toán có thể siết lại theo từng vùng, bắt đầu từ
