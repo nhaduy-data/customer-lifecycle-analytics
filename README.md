@@ -100,34 +100,34 @@ Survival analysis on inter-purchase time shows that at the 90-day mark only **55
 | Intervention window | ~175 days (P75) | When to trigger retention campaigns |
 | Churned | ~288 days (P90) | When a customer is effectively lost |
 
-These thresholds independently validate the K-Means output: the *At Risk* cluster averages 286 days
-recency — precisely at the churn boundary the survival curve identifies.
+These thresholds independently validate the K-Means output: the *At Risk* cluster averages 306 days
+recency — already past the churn boundary the survival curve identifies.
 
-### 3.3 39.5% of revenue sits in a segment that has already stopped buying
+### 3.3 39.3% of revenue sits in a segment that has already stopped buying
 
 K-Means (K=5) segmentation on log-transformed, standardised RFM:
 
 | Segment | Customers | Recency | Monetary | Share of revenue |
 | :-- | --: | --: | --: | --: |
-| At Risk | 11,987 (12.8%) | 286 d | R$508.57 | **39.5%** |
-| Potential Loyalist | 28,936 (31.0%) | 130 d | R$161.52 | 30.3% |
-| Lost | 24,552 (26.3%) | 424 d | R$99.62 | 15.9% |
-| Low-Value Occasional | 25,081 (26.9%) | 161 d | R$53.52 | 8.7% |
-| Repeat Buyers | 2,801 (3.0%) | 221 d | R$308.59 | 5.6% |
+| At Risk | 12,157 (13.0%) | 306 d | R$498.3 | **39.3%** |
+| Potential Loyalist | 28,997 (31.1%) | 130 d | R$171.1 | 32.2% |
+| Lost | 24,470 (26.2%) | 422 d | R$95.9 | 15.2% |
+| Low-Value Occasional | 25,718 (27.5%) | 158 d | R$54.7 | 9.1% |
+| Repeat Buyers | 2,015 (2.2%) | 192 d | R$320.8 | 4.2% |
 
 Two absences are as informative as the segments themselves: there is **no Champions segment**
 (recent + frequent + high-value) and **no New Customers segment** — the most recent cluster still
 averages 130 days since last purchase. Olist has not built a loyal customer base.
 
-Traditional RFM scoring cannot separate the two most valuable groups: *At Risk* (7.08) and
-*Potential Loyalist* (7.37) score almost identically, because a high monetary score compensates for
-a low recency score. Together these two segments hold 69.8% of revenue and require opposite
+Traditional RFM scoring cannot separate the two most valuable groups: *At Risk* (6.92) and
+*Potential Loyalist* (7.43) score within half a point of each other on an 11-point scale, because a high monetary score compensates for
+a low recency score. Together these two segments hold 71.5% of revenue and require opposite
 strategies — which is precisely why clustering adds value over rule-based scoring.
 
 ### 3.4 Late delivery is not the churn driver — but it hits the highest-value segment hardest
 
-Contrary to the initial hypothesis, the *Lost* segment has the **lowest** late-delivery rate (4.1%),
-while *At Risk* — 39.5% of revenue — has the **highest** (8.5%).
+Contrary to the initial hypothesis, the *Lost* segment has the **lowest** late-delivery rate (4.2%),
+while *At Risk* — 39.3% of revenue — has the **highest** (8.1%).
 
 Decomposing delivery time into three stages identifies the bottleneck precisely:
 
@@ -203,7 +203,7 @@ model and a sensitivity matrix covering the full cost × uplift decision space. 
 should be personalised on the first purchase — same category or same seller (finding 3.8) — rather
 than a generic discount.
 
-**Priority 2 — Protect At Risk revenue and ratings through logistics.** The segment carrying 39.5%
+**Priority 2 — Protect At Risk revenue and ratings through logistics.** The segment carrying 39.3%
 of revenue receives the worst delivery experience. Since carrier transit rather than seller dispatch
 is the proven bottleneck, priority shipping routes for high-value customers directly protect core
 revenue. Operationally this means two lists: the ~100 high-volume sellers behind half of all late
@@ -216,10 +216,10 @@ from arriving early, the promised date shown at checkout can be tightened region
 with the Southeast where delivery variance is lowest.
 
 **Priority 3 — Convert Potential Loyalists.** With no Champions segment in existence, this group
-(31% of customers, 30.3% of revenue, most recent activity) is the only realistic path to building a
+(31.1% of customers, 32.2% of revenue, most recent activity) is the only realistic path to building a
 loyal base.
 
-**Do not over-invest in Lost.** 26.3% of customers, 15.9% of revenue, 424 days silent, ~0.7%
+**Do not over-invest in Lost.** 26.2% of customers, 15.2% of revenue, 422 days silent, ~0.7%
 reactivation rate. Restrict to large seasonal campaigns.
 
 ---

@@ -100,34 +100,34 @@ Phân tích sống sót trên thời gian giữa các lần mua cho thấy tại
 | Cần can thiệp | ~175 ngày (P75) | Thời điểm nên kích hoạt chiến dịch giữ chân |
 | Đã rời bỏ | ~288 ngày (P90) | Thời điểm coi khách hàng là đã mất |
 
-Hai ngưỡng này xác nhận độc lập kết quả K-Means: cụm *At Risk* có recency trung bình 286 ngày —
-đúng ngay ranh giới rời bỏ mà đường cong sống sót chỉ ra.
+Hai ngưỡng này xác nhận độc lập kết quả K-Means: cụm *At Risk* có recency trung bình 306 ngày —
+đã vượt qua ranh giới rời bỏ mà đường cong sống sót chỉ ra.
 
-### 3.3 39,5% doanh thu nằm ở nhóm khách đã ngừng mua
+### 3.3 39,3% doanh thu nằm ở nhóm khách đã ngừng mua
 
 Phân cụm K-Means (K=5) trên dữ liệu RFM đã log-transform và chuẩn hóa:
 
 | Phân khúc | Số khách | Recency | Monetary | % doanh thu |
 | :-- | --: | --: | --: | --: |
-| At Risk | 11.987 (12,8%) | 286 ngày | R$508,57 | **39,5%** |
-| Potential Loyalist | 28.936 (31,0%) | 130 ngày | R$161,52 | 30,3% |
-| Lost | 24.552 (26,3%) | 424 ngày | R$99,62 | 15,9% |
-| Low-Value Occasional | 25.081 (26,9%) | 161 ngày | R$53,52 | 8,7% |
-| Repeat Buyers | 2.801 (3,0%) | 221 ngày | R$308,59 | 5,6% |
+| At Risk | 12.157 (13,0%) | 306 ngày | R$498,3 | **39,3%** |
+| Potential Loyalist | 28.997 (31,1%) | 130 ngày | R$171,1 | 32,2% |
+| Lost | 24.470 (26,2%) | 422 ngày | R$95,9 | 15,2% |
+| Low-Value Occasional | 25.718 (27,5%) | 158 ngày | R$54,7 | 9,1% |
+| Repeat Buyers | 2.015 (2,2%) | 192 ngày | R$320,8 | 4,2% |
 
 Hai sự *vắng mặt* có ý nghĩa không kém các phân khúc hiện có: dữ liệu **không có nhóm Champions**
 (mua gần đây + mua nhiều lần + chi tiêu cao) và **không có nhóm New Customers** — cụm gần đây nhất
 cũng đã 130 ngày không phát sinh giao dịch. Olist chưa xây được tầng khách hàng trung thành.
 
-Phương pháp chấm điểm RFM truyền thống không tách được hai nhóm giá trị nhất: *At Risk* (7,08) và
-*Potential Loyalist* (7,37) có tổng điểm gần như bằng nhau, vì điểm Monetary cao bù cho điểm Recency
-thấp. Hai nhóm này cộng lại nắm 69,8% doanh thu nhưng cần chiến lược trái ngược nhau — đây chính là
+Phương pháp chấm điểm RFM truyền thống không tách được hai nhóm giá trị nhất: *At Risk* (6,92) và
+*Potential Loyalist* (7,43) có tổng điểm chênh nhau chưa tới nửa điểm trên thang 11, vì điểm Monetary cao bù cho điểm Recency
+thấp. Hai nhóm này cộng lại nắm 71,5% doanh thu nhưng cần chiến lược trái ngược nhau — đây chính là
 lý do phân cụm mang lại giá trị hơn chấm điểm theo luật.
 
 ### 3.4 Giao hàng chậm không phải nguyên nhân churn — nhưng ảnh hưởng nặng nhất đến nhóm giá trị cao
 
-Trái với giả thuyết ban đầu, nhóm *Lost* có tỷ lệ giao trễ **thấp nhất** (4,1%), trong khi *At Risk*
-— nhóm nắm 39,5% doanh thu — có tỷ lệ **cao nhất** (8,5%).
+Trái với giả thuyết ban đầu, nhóm *Lost* có tỷ lệ giao trễ **thấp nhất** (4,2%), trong khi *At Risk*
+— nhóm nắm 39,3% doanh thu — có tỷ lệ **cao nhất** (8,1%).
 
 Phân rã thời gian giao hàng thành ba khâu xác định chính xác điểm nghẽn:
 
@@ -202,7 +202,7 @@ test trước khi mở rộng. Dashboard có mô hình What-If tương tác và 
 không gian quyết định chi phí × uplift. Nội dung chiến dịch nên cá nhân hóa theo lần mua đầu — cùng
 danh mục hoặc cùng seller (phát hiện 3.8) — thay vì giảm giá chung.
 
-**Ưu tiên 2 — Bảo vệ doanh thu và điểm đánh giá của nhóm At Risk bằng logistics.** Nhóm nắm 39,5%
+**Ưu tiên 2 — Bảo vệ doanh thu và điểm đánh giá của nhóm At Risk bằng logistics.** Nhóm nắm 39,3%
 doanh thu đang nhận trải nghiệm giao hàng tệ nhất. Vì điểm nghẽn đã được chứng minh là khâu vận
 chuyển chứ không phải người bán, việc ưu tiên tuyến giao hàng cho khách giá trị cao sẽ trực tiếp bảo
 vệ doanh thu lõi. Về mặt vận hành, việc này gồm hai danh sách: khoảng 100 seller bán nhiều đơn nhất đứng
@@ -214,11 +214,11 @@ thu, không phải biện pháp giữ chân (phát hiện 3.6).
 giá từ việc giao sớm, ngày hẹn hiển thị lúc thanh toán có thể siết lại theo từng vùng, bắt đầu từ
 Southeast nơi độ lệch giao hàng thấp nhất.
 
-**Ưu tiên 3 — Chuyển đổi nhóm Potential Loyalist.** Vì không tồn tại nhóm Champions, nhóm này (31%
-khách hàng, 30,3% doanh thu, hoạt động gần đây nhất) là con đường thực tế duy nhất để xây dựng tầng
+**Ưu tiên 3 — Chuyển đổi nhóm Potential Loyalist.** Vì không tồn tại nhóm Champions, nhóm này (31,1%
+khách hàng, 32,2% doanh thu, hoạt động gần đây nhất) là con đường thực tế duy nhất để xây dựng tầng
 khách hàng trung thành.
 
-**Không đầu tư quá mức vào nhóm Lost.** 26,3% khách hàng, 15,9% doanh thu, im lặng 424 ngày, tỷ lệ
+**Không đầu tư quá mức vào nhóm Lost.** 26,2% khách hàng, 15,2% doanh thu, im lặng 422 ngày, tỷ lệ
 tái kích hoạt ~0,7%. Chỉ nên tiếp cận trong các chiến dịch lớn theo mùa.
 
 ---
