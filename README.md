@@ -232,8 +232,8 @@ drill-through to a filtered customer list, and What-If parameters driving a live
 | Page | Purpose |
 | :-- | :-- |
 | Executive Overview | Business health: revenue, customers, AOV, CLV, retention trend, geography, payment mix |
-| Customer Segmentation | Five segments, revenue concentration, category preferences, exportable customer list |
-| Operations & Logistics | Delivery performance by segment and region, three-stage breakdown, trend |
+| Customer Segmentation | Segment profile, revenue share, customer share vs revenue share, repeat rate by first-purchase category against the 2.16% overall line |
+| Operations & Logistics | Review score for late vs on-time orders, late-delivery rate by region and segment, seller watch-list ranked by late orders, three-stage breakdown by region and trend |
 | Win-back Business Case | What-If simulator with break-even analysis and cost × uplift sensitivity matrix |
 | Customer List | Drill-through target — filtered, exportable list for campaign targeting |
 

@@ -232,8 +232,8 @@ theo thời gian thực.
 | Trang | Mục đích |
 | :-- | :-- |
 | Executive Overview | Sức khỏe kinh doanh: doanh thu, khách hàng, AOV, CLV, xu hướng giữ chân, địa lý, cơ cấu thanh toán |
-| Customer Segmentation | Năm phân khúc, mức độ tập trung doanh thu, danh mục sản phẩm, danh sách khách xuất được |
-| Operations & Logistics | Hiệu suất giao hàng theo phân khúc và vùng, phân rã ba khâu, xu hướng |
+| Customer Segmentation | Hồ sơ phân khúc, tỷ trọng doanh thu, tỷ lệ khách so với tỷ lệ doanh thu, tỷ lệ quay lại theo danh mục mua lần đầu đối chiếu với mức chung 2,16% |
+| Operations & Logistics | Điểm review của đơn trễ so với đơn đúng hẹn, tỷ lệ giao trễ theo vùng và phân khúc, danh sách seller xếp theo số đơn trễ, phân rã ba khâu theo vùng và xu hướng |
 | Win-back Business Case | Mô phỏng What-If với phân tích hòa vốn và ma trận độ nhạy chi phí × uplift |
 | Customer List | Trang đích drill-through — danh sách đã lọc, xuất CSV cho chiến dịch |
 
